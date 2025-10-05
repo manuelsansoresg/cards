@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CategoriaController as AdminCategoriaController;
 use App\Http\Controllers\Admin\UploadController as AdminUploadController;
 use App\Http\Controllers\Admin\OrdenController as AdminOrdenController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ReactionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +47,12 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::get('/pago', [CheckoutController::class, 'page'])->name('checkout.page');
 Route::middleware('auth')->group(function(){
     Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
+    // Reactions: guardar del usuario
+    Route::post('/reactions', [ReactionController::class, 'store'])->name('reactions.store');
 });
+
+// Reactions: listado público por tarjeta
+Route::get('/reactions/{upload}', [ReactionController::class, 'index'])->name('reactions.index');
 
 // Admin routes
 Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')->group(function () {

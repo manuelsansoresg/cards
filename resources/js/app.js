@@ -221,6 +221,141 @@ document.addEventListener('DOMContentLoaded', function () {
     openCart();
   });
 
+  // -----------------
+  // Reacciones
+  // -----------------
+  const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  let reactionPopoverEl;
+
+  function ensurePopover() {
+    if (reactionPopoverEl) return reactionPopoverEl;
+    reactionPopoverEl = document.createElement('div');
+    reactionPopoverEl.className = 'reaction-popover';
+    document.body.appendChild(reactionPopoverEl);
+    return reactionPopoverEl;
+  }
+
+  function positionPopover(el, anchor) {
+    const rect = anchor.getBoundingClientRect();
+    const top = window.scrollY + rect.top - 10; // encima un poco
+    const left = window.scrollX + rect.left + (rect.width/2);
+    el.style.top = `${top}px`;
+    el.style.left = `${left - el.offsetWidth/2}px`;
+  }
+
+  function renderShortEmojis(uploadId) {
+    const list = (window.REACTION_EMOJIS || ['❤','😍','🔥','👍','😘']).slice(0,5);
+    const moreBtn = '<span class="more">▾</span>';
+    return list.map(e => `<span class="emoji" data-upload-id="${uploadId}" data-emoji="${e}">${e}</span>`).join('') + moreBtn;
+  }
+
+  function openPopover(anchor) {
+    const uploadId = Number(anchor.dataset.uploadId);
+    if (!uploadId) return;
+    const el = ensurePopover();
+    el.innerHTML = renderShortEmojis(uploadId);
+    el.style.display = 'block';
+    // Primero posicionamos, luego re-posicionamos por ancho calculado
+    positionPopover(el, anchor);
+    positionPopover(el, anchor);
+  }
+
+  function closePopover() {
+    if (reactionPopoverEl) reactionPopoverEl.style.display = 'none';
+  }
+
+  async function refreshReactions(uploadId) {
+    try {
+      const res = await fetch(`/reactions/${uploadId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const cont = document.getElementById(`reactions-${uploadId}`);
+      if (!cont) return;
+      const counts = {};
+      (data.reactions || []).forEach(function(r){ counts[r] = (counts[r] || 0) + 1; });
+      cont.innerHTML = Object.keys(counts).map(function(emoji){
+        const c = counts[emoji];
+        return `<span class="reaction">${emoji} <span class="badge bg-light text-dark">${c}</span></span>`;
+      }).join('');
+    } catch (err) { /* noop */ }
+  }
+
+  async function saveReaction(uploadId, emoji) {
+    if (!window.IS_AUTH) {
+      // ignorar si no autenticado
+      return;
+    }
+    try {
+      const res = await fetch('/reactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': CSRF_TOKEN || ''
+        },
+        body: JSON.stringify({ upload_id: uploadId, reaction: emoji })
+      });
+      if (res.ok) {
+        await refreshReactions(uploadId);
+      }
+    } catch (err) { /* noop */ }
+  }
+
+  // Delegación: abrir popover en escritorio con click
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.reaction-btn');
+    if (btn) {
+      openPopover(btn);
+    }
+    // Cerrar si click fuera
+    const insidePopover = e.target.closest('.reaction-popover');
+    if (!btn && !insidePopover) closePopover();
+  });
+
+  // Delegación: elegir emoji o abrir listado completo
+  document.addEventListener('click', function(e){
+    const emojiEl = e.target.closest('.reaction-popover .emoji');
+    if (emojiEl) {
+      const uploadId = Number(emojiEl.dataset.uploadId);
+      const emoji = emojiEl.dataset.emoji;
+      closePopover();
+      saveReaction(uploadId, emoji);
+      return;
+    }
+    const moreEl = e.target.closest('.reaction-popover .more');
+    if (moreEl) {
+      // Abrir modal de selector completo
+      const picker = document.getElementById('emojiPickerModal');
+      if (picker && window.bootstrap) {
+        const modal = new window.bootstrap.Modal(picker);
+        picker.dataset.uploadId = String(document.querySelector('.reaction-popover .emoji')?.dataset.uploadId || '');
+        modal.show();
+      }
+    }
+  });
+
+  // Long press en móvil para abrir popover
+  let pressTimer = null;
+  document.addEventListener('touchstart', function(e){
+    const btn = e.target.closest('.reaction-btn');
+    if (!btn) return;
+    pressTimer = setTimeout(function(){ openPopover(btn); }, 400);
+  });
+  document.addEventListener('touchend', function(){ if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+
+  // Selección desde modal completo
+  document.addEventListener('click', function(e){
+    const fullEmoji = e.target.closest('#emojiPickerModal .emoji-option');
+    if (!fullEmoji) return;
+    const picker = document.getElementById('emojiPickerModal');
+    const uploadId = Number(picker?.dataset.uploadId || '0');
+    const emoji = fullEmoji.dataset.emoji;
+    if (window.bootstrap && picker) {
+      const m = window.bootstrap.Modal.getInstance(picker);
+      m && m.hide();
+    }
+    saveReaction(uploadId, emoji);
+  });
+
   // Remove item from cart
   cartItemsEl && cartItemsEl.addEventListener('click', function(e){
     const idxStr = e.target.closest('[data-remove-index]')?.getAttribute('data-remove-index');

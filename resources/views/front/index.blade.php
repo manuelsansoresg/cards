@@ -13,9 +13,13 @@
 <body class="front-bg">
     <header class="front-header d-flex align-items-center justify-content-between px-3">
         <div class="d-flex align-items-center gap-2">
-            <div class="avatar-placeholder"></div>
+            @if(!empty(optional(\App\Models\StarsSetting::first())->header_image))
+                <img src="/{{ optional(\App\Models\StarsSetting::first())->header_image }}" alt="Header" class="avatar-placeholder" style="object-fit:cover;">
+            @else
+                <div class="avatar-placeholder"></div>
+            @endif
             <div>
-                <div class="fw-bold small">Idols Kpop</div>
+                <div class="fw-bold small">{{ optional(\App\Models\StarsSetting::first())->header_title ?? 'Idols Kpop' }}</div>
                 <div class="text-white-50 small">Invitado</div>
             </div>
         </div>
@@ -37,6 +41,28 @@
             @endforeach
         </div>
 
+        <!-- Modal selector completo de emojis -->
+        <div class="modal fade" id="emojiPickerModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Selecciona un emoji</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach(['❤','😍','🔥','👍','😘','🤗','⭐','👄','🤤','🙏','🛒','😱','😏','😇','🤒','🥰','🤩','🥳','🥹','🥴','😋','🤤','🤔','🫡','🙁','🫶','✌','🤟','🤝','💅','🍌','🍳','🍙','🍷','🛸','🎀','🏹','🪭','🥵','😖','😩','😫','🥸','🤑','👻','🌝','🎃','🙈','💦'] as $e)
+                                <span class="emoji-option" data-emoji="{{ $e }}" style="font-size:1.5rem;cursor:pointer;">{{ $e }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row g-3" id="cards-grid">
             @foreach($uploads as $upload)
                 @php
@@ -55,15 +81,14 @@
                                     <i class="fas fa-photo-video fa-2x text-muted"></i>
                                 </div>
                             @elseif($count === 1)
-                                @php $m = $media[0]; @endphp
-                                @if(\Illuminate\Support\Str::startsWith($m->file_type, 'image'))
-                                    <img src="/{{ $m->file_path }}" alt="Imagen" class="media-img">
+                                @if(\Illuminate\Support\Str::startsWith($media[0]->file_type, 'image'))
+                                    <img src="/{{ $media[0]->file_path }}" alt="Imagen" class="media-img">
                                 @else
                                     <video class="media-video" muted preload="metadata" playsinline>
-                                        <source src="/{{ $m->file_path }}">
+                                        <source src="/{{ $media[0]->file_path }}">
                                     </video>
                                 @endif
-                                <span class="type-indicator"><i class="fas {{ \Illuminate\Support\Str::startsWith($m->file_type,'image') ? 'fa-image' : 'fa-video' }}"></i></span>
+                                <span class="type-indicator"><i class="fas {{ \Illuminate\Support\Str::startsWith($media[0]->file_type,'image') ? 'fa-image' : 'fa-video' }}"></i></span>
                             @else
                                 <div class="collage">
                                     @foreach($media->take(4) as $m)
@@ -101,10 +126,17 @@
                         </div>
                         <div class="card-body p-3">
                             <div class="card-title clamp-2">{{ $upload->title }}</div>
-                            <div class="reactions mt-2">
-                                @foreach(($upload->reactions ?? collect())->take(6) as $reaction)
-                                    <span class="reaction">{{ $reaction->reaction }}</span>
-                                @endforeach
+                            <div class="d-flex align-items-center justify-content-between mt-2">
+                                <div class="reactions" id="reactions-{{ $upload->id }}">
+                                    @foreach((($upload->reactions ?? collect())->groupBy('reaction')->map->count()->sortDesc()) as $emoji => $count)
+                                        <span class="reaction">{{ $emoji }} <span class="badge bg-light text-dark">{{ $count }}</span></span>
+                                    @endforeach
+                                </div>
+                                @if($unlocked)
+                                    <button class="btn btn-outline-dark btn-sm reaction-btn" data-upload-id="{{ $upload->id }}">
+                                        Me gusta
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -178,12 +210,128 @@
             </div>
         </div>
 
+        <style>
+            .reaction-popover { position: absolute; z-index: 1050; background:#fff; border:1px solid #ddd; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.15); padding:.4rem .5rem; display:none; }
+            .reaction-popover .emoji { font-size: 1.35rem; padding:.2rem; cursor:pointer; }
+            .reaction-popover .emoji:hover { transform: scale(1.1); }
+            .reaction-popover .more { cursor:pointer; color:#333; font-weight:bold; margin-left:.25rem; }
+        </style>
+
         <script>
             window.STARS_PER_DOLLAR = {{ optional(\App\Models\StarsSetting::first())->stars_per_dollar ?? 1 }};
             window.IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
+            window.REACTION_EMOJIS = ['❤','😍','🔥','👍','😘','🤗','⭐','👄','🤤','🙏','🛒','😱','😏','😇','🤒','🥰','🤩','🥳','🥹','🥴','😋','🤤','🤔','🫡','🙁','🫶','✌','🤟','🤝','💅','🍌','🍳','🍙','🍷','🛸','🎀','🏹','🪭','🥵','😖','😩','😫','🥸','🤑','👻','🌝','🎃','🙈','💦'];
         </script>
     </div>
 
     <script src="{{ asset('js/app.js') }}"></script>
+    <script>
+        (function(){
+            const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            let reactionPopoverEl;
+            function ensurePopover(){
+                if (reactionPopoverEl) return reactionPopoverEl;
+                reactionPopoverEl = document.createElement('div');
+                reactionPopoverEl.className = 'reaction-popover';
+                document.body.appendChild(reactionPopoverEl);
+                return reactionPopoverEl;
+            }
+            function positionPopover(el, anchor){
+                const rect = anchor.getBoundingClientRect();
+                const top = window.scrollY + rect.top - 10;
+                const left = window.scrollX + rect.left + rect.width/2;
+                el.style.top = `${top}px`;
+                el.style.left = `${left - el.offsetWidth/2}px`;
+            }
+            function renderShortEmojis(uploadId){
+                const list = (window.REACTION_EMOJIS || ['❤','😍','🔥','👍','😘']).slice(0,5);
+                const moreBtn = '<span class="more">▾</span>';
+                return list.map(e => `<span class="emoji" data-upload-id="${uploadId}" data-emoji="${e}">${e}</span>`).join('') + moreBtn;
+            }
+            function openPopover(anchor){
+                const uploadId = Number(anchor.dataset.uploadId);
+                if (!uploadId) return;
+                const el = ensurePopover();
+                el.innerHTML = renderShortEmojis(uploadId);
+                el.style.display = 'block';
+                positionPopover(el, anchor); positionPopover(el, anchor);
+            }
+            function closePopover(){ if (reactionPopoverEl) reactionPopoverEl.style.display = 'none'; }
+            async function refreshReactions(uploadId){
+                try {
+                    const res = await fetch(`/reactions/${uploadId}`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const cont = document.getElementById(`reactions-${uploadId}`);
+                    if (!cont) return;
+                    const counts = {};
+                    (data.reactions || []).forEach(function(r){ counts[r] = (counts[r] || 0) + 1; });
+                    cont.innerHTML = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]).map(function(emoji){
+                        const c = counts[emoji];
+                        return `<span class="reaction">${emoji} <span class="badge bg-light text-dark">${c}</span></span>`;
+                    }).join('');
+                } catch (err) {}
+            }
+            async function saveReaction(uploadId, emoji){
+                if (!window.IS_AUTH) return;
+                try {
+                    const res = await fetch('/reactions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+                        body: JSON.stringify({ upload_id: uploadId, reaction: emoji })
+                    });
+                    if (res.ok) await refreshReactions(uploadId);
+                } catch (err) {}
+            }
+            // Abrir popover por click
+            document.addEventListener('click', function(e){
+                const btn = e.target.closest('.reaction-btn');
+                if (btn) openPopover(btn);
+                const inside = e.target.closest('.reaction-popover');
+                if (!btn && !inside) closePopover();
+            });
+            // Elegir emoji o abrir listado completo
+            document.addEventListener('click', function(e){
+                const emojiEl = e.target.closest('.reaction-popover .emoji');
+                if (emojiEl){
+                    const id = Number(emojiEl.dataset.uploadId);
+                    const emoji = emojiEl.dataset.emoji;
+                    closePopover();
+                    saveReaction(id, emoji);
+                    return;
+                }
+                const moreEl = e.target.closest('.reaction-popover .more');
+                if (moreEl){
+                    const picker = document.getElementById('emojiPickerModal');
+                    if (picker && window.bootstrap){
+                        const modal = new window.bootstrap.Modal(picker);
+                        picker.dataset.uploadId = String(document.querySelector('.reaction-popover .emoji')?.dataset.uploadId || '');
+                        modal.show();
+                    }
+                }
+            });
+            // Long press en móvil
+            let pressTimer = null;
+            document.addEventListener('touchstart', function(e){
+                const btn = e.target.closest('.reaction-btn');
+                if (!btn) return;
+                pressTimer = setTimeout(function(){ openPopover(btn); }, 400);
+            });
+            document.addEventListener('touchend', function(){ if (pressTimer){ clearTimeout(pressTimer); pressTimer = null; } });
+            // Selección desde modal completo
+            document.addEventListener('click', function(e){
+                const fullEmoji = e.target.closest('#emojiPickerModal .emoji-option');
+                if (!fullEmoji) return;
+                const picker = document.getElementById('emojiPickerModal');
+                const uploadId = Number(picker?.dataset.uploadId || '0');
+                const emoji = fullEmoji.dataset.emoji;
+                if (window.bootstrap && picker) {
+                    const m = window.bootstrap.Modal.getInstance(picker);
+                    m && m.hide();
+                }
+                saveReaction(uploadId, emoji);
+            });
+        })();
+    </script>
 </body>
 </html>
