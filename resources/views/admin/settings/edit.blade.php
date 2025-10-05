@@ -20,7 +20,7 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Paypal Mode</label>
-            <select name="paypal_mode" id="">
+            <select name="paypal_mode" id="" class="form-control">
                 <option value="live" {{ $setting->paypal_mode==='live' ? 'selected' : '' }}>live</option>
                 <option value="sandbox" {{ $setting->paypal_mode==='sandbox' ? 'selected' : '' }}>sandbox</option>
             </select>
@@ -48,7 +48,7 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">MercadoPago Mode</label>
-            <select name="mercadopago_mode" id="">
+            <select name="mercadopago_mode" id="" class="form-control">
                 <option value="live" {{ $setting->mercadopago_mode==='live' ? 'selected' : '' }}>live</option>
                 <option value="sandbox" {{ $setting->mercadopago_mode==='sandbox' ? 'selected' : '' }}>sandbox</option>
             </select>
