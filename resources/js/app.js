@@ -142,6 +142,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pausar cualquier video al cerrar
     viewerSlides.querySelectorAll('video').forEach(function (v) { v.pause(); });
     viewerSlides.innerHTML = '';
+    // Fallback: limpiar cualquier backdrop persistente
+    cleanupBackdrops();
   });
 
   // -----------------
@@ -266,6 +268,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (reactionPopoverEl) reactionPopoverEl.style.display = 'none';
   }
 
+  // Utilidad: limpiar backdrop y estado de body si algún modal queda colgado
+  function cleanupBackdrops() {
+    try {
+      document.querySelectorAll('.modal-backdrop').forEach(function(el){ el.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('padding-right');
+    } catch (e) { /* noop */ }
+  }
+
   async function refreshReactions(uploadId) {
     try {
       const res = await fetch(`/reactions/${uploadId}`);
@@ -354,9 +365,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.bootstrap && picker) {
       const m = window.bootstrap.Modal.getInstance(picker);
       m && m.hide();
+      // Fallback: en algunos dispositivos el backdrop persiste
+      setTimeout(cleanupBackdrops, 200);
     }
     saveReaction(uploadId, emoji);
   });
+
+  // Garantizar limpieza cuando se cierre el modal de emojis manualmente
+  (function(){
+    const picker = document.getElementById('emojiPickerModal');
+    if (picker) {
+      picker.addEventListener('hidden.bs.modal', cleanupBackdrops);
+    }
+  })();
 
   // Remove item from cart
   cartItemsEl && cartItemsEl.addEventListener('click', function(e){
