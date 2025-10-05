@@ -179,11 +179,13 @@
                                         <span class="reaction">{{ $emoji }} <span class="badge bg-light text-dark">{{ $count }}</span></span>
                                     @endforeach
                                 </div>
-                                @if($unlocked)
-                                    <button class="btn btn-outline-dark btn-sm reaction-btn" data-upload-id="{{ $upload->id }}">
-                                        Me gusta
-                                    </button>
-                                @endif
+                                @auth
+                                    @if($unlocked)
+                                        <button class="btn btn-outline-dark btn-sm reaction-btn" data-upload-id="{{ $upload->id }}">
+                                            Me gusta
+                                        </button>
+                                    @endif
+                                @endauth
                             </div>
                         </div>
                     </div>
@@ -193,10 +195,12 @@
         
         <!-- Modal/visor de medios -->
         <div class="modal fade" id="mediaViewer" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-sm-down">
                 <div class="modal-content bg-dark text-white">
-                    <div class="modal-body p-0 position-relative">
-                        <button type="button" class="btn btn-light position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+                    <div class="modal-header border-0">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0">
                         <div id="viewerSlides" class="w-100" style="min-height:60vh;background:#000;display:flex;align-items:center;justify-content:center"></div>
                         <div class="d-flex justify-content-between align-items-center p-2">
                             <button class="btn btn-secondary btn-sm" id="prevSlide"><i class="fas fa-chevron-left"></i></button>
