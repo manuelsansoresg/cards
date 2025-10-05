@@ -19,6 +19,11 @@
             /* Collage: si la card contiene .media-container no-single, darle más ancho */
             #cards-grid .card-column:has(.media-container:not(.single)) .upload-card{ width:92%; max-width:480px; }
         }
+
+        /* Asegurar que el body permita scroll cuando NO hay un modal abierto */
+        body.front-bg:not(.modal-open){
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="front-bg">
@@ -271,7 +276,26 @@
             .reaction-popover { position: absolute; z-index: 1050; background:#fff; border:1px solid #ddd; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.15); padding:.4rem .5rem; display:none; }
             .reaction-popover .emoji { font-size: 1.35rem; padding:.2rem; cursor:pointer; }
             .reaction-popover .emoji:hover { transform: scale(1.1); }
-            .reaction-popover .more { cursor:pointer; color:#333; font-weight:bold; margin-left:.25rem; }
+            .reaction-popover .more {
+                cursor: pointer;
+                color: #333;
+                font-weight: bold;
+                margin-left: .25rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                font-size: 1.4rem;
+                line-height: 1;
+                border-radius: 999px;
+                background: #f1f3f5;
+                box-shadow: 0 2px 4px rgba(0,0,0,.08);
+                -webkit-tap-highlight-color: transparent;
+            }
+            @media (max-width: 576px){
+                .reaction-popover .more { width: 40px; height: 40px; font-size: 1.6rem; }
+            }
         </style>
 
         <script>
@@ -283,6 +307,16 @@
 
     <script src="{{ asset('js/app.js') }}"></script>
     <script>
+        // Fallback: si por alguna razón quedó un backdrop o la clase modal-open
+        // al cargar la página, limpiamos para permitir el scroll.
+        document.addEventListener('DOMContentLoaded', function(){
+            try {
+                document.querySelectorAll('.modal-backdrop').forEach(function(el){ el.remove(); });
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
+                document.body.style.removeProperty('overflow');
+            } catch (e) { /* noop */ }
+        });
         (function(){
             const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             let reactionPopoverEl;

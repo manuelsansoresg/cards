@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function renderShortEmojis(uploadId) {
     const list = (window.REACTION_EMOJIS || ['❤','😍','🔥','👍','😘']).slice(0,5);
-    const moreBtn = '<span class="more">▾</span>';
+    const moreBtn = '<span class="more" role="button" aria-label="Más emojis" title="Más emojis">▾</span>';
     return list.map(e => `<span class="emoji" data-upload-id="${uploadId}" data-emoji="${e}">${e}</span>`).join('') + moreBtn;
   }
 
