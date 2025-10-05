@@ -1,0 +1,10 @@
+/* Admin header style */
+.admin-header {
+  background-color: #223e8f; /* blue like screenshot */
+  height: 48px;
+}
+.admin-header .fs-4 { color: #fff; }
+.admin-header .fw-bold { color: #fff; }
+
+/* Generic spacing */
+.table td, .table th { vertical-align: middle; }
