@@ -11,6 +11,11 @@
 </style>
 <div class="auth-wrapper d-flex justify-content-center align-items-center">
     <div class="auth-card p-4 shadow-sm w-100">
+        <div class="mb-2">
+            <a href="/" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Volver
+            </a>
+        </div>
         <div class="d-flex align-items-center mb-3">
             <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
             <h5 class="auth-title mb-0">Inicia sesión</h5>
