@@ -35,13 +35,30 @@
             </div>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <a href="#" class="text-white"><i class="fas fa-bell"></i></a>
-            <a href="#" class="text-white" id="cartIcon"><i class="fas fa-shopping-cart"></i><span class="cart-badge d-none" id="cartBadge">0</span></a>
-            @guest
-                <a href="{{ route('login') }}" class="text-white"><i class="fas fa-user"></i></a>
-            @else
-                <a href="{{ route('home') }}" class="text-white"><i class="fas fa-user-check"></i></a>
-            @endguest
+            <div class="dropdown">
+                <a href="#" class="text-white position-relative" id="cartIcon" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge d-none" id="cartBadge">0</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" id="openCartMenuItem"><i class="fas fa-shopping-cart me-2"></i>Ver carrito</a></li>
+                    @auth
+                        @if(auth()->user()->role === 'admin')
+                            <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                        @endif
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                               onclick="event.preventDefault(); document.getElementById('logout-form-front').submit();">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+                            </a>
+                            <form id="logout-form-front" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                        </li>
+                    @else
+                        <li><a class="dropdown-item" href="{{ route('login') }}"><i class="fas fa-user me-2"></i>Iniciar sesión</a></li>
+                    @endauth
+                </ul>
+            </div>
         </div>
     </header>
 
@@ -342,6 +359,19 @@
                 }
                 saveReaction(uploadId, emoji);
             });
+
+            // Abrir carrito desde el menú del icono
+            const openCartItem = document.getElementById('openCartMenuItem');
+            if (openCartItem) {
+                openCartItem.addEventListener('click', function(e){
+                    e.preventDefault();
+                    const modalEl = document.getElementById('cartModal');
+                    if (modalEl && window.bootstrap) {
+                        const m = new window.bootstrap.Modal(modalEl);
+                        m.show();
+                    }
+                });
+            }
         })();
     </script>
 </body>

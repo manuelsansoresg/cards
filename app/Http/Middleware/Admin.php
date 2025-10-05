@@ -18,7 +18,8 @@ class Admin
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check() || (Auth::user()->role ?? null) !== 'admin') {
-            return redirect()->route('home');
+            // No admins: enviar a la raíz
+            return redirect('/');
         }
 
         return $next($request);

@@ -23,6 +23,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $user = auth()->user();
+        if (($user->role ?? null) === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Usuarios no-admin no tienen home, redirigir a raíz
+        return redirect('/');
     }
 }
