@@ -10,7 +10,7 @@
 </style>
 <div class="auth-wrapper d-flex justify-content-center align-items-center">
     <div class="auth-card p-4 shadow-sm w-100">
-        <div class="mb-2">
+        <div class="mb-2 float-end">
             <a href="/" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-arrow-left me-1"></i> Volver
             </a>
