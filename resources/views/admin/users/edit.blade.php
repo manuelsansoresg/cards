@@ -26,6 +26,21 @@
             <label class="form-label">Stars</label>
             <input type="number" name="stars" class="form-control" value="{{ old('stars', $user->stars) }}">
         </div>
+        <div class="col-md-6">
+            <label class="form-label d-block">Estado</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="activo" id="activo_true" value="1" {{ old('activo', (int)$user->activo) == 1 ? 'checked' : '' }}>
+                <label class="form-check-label" for="activo_true">Activo</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="activo" id="activo_false" value="0" {{ old('activo', (int)$user->activo) == 0 ? 'checked' : '' }}>
+                <label class="form-check-label" for="activo_false">Inactivo</label>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Nueva contraseña (opcional)</label>
+            <input type="password" name="password" class="form-control" placeholder="Ingresa sólo si deseas cambiarla">
+        </div>
     </div>
     <div class="mt-3">
         <button class="btn btn-success" type="submit">Guardar</button>

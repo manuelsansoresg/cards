@@ -13,7 +13,8 @@
             <th>Nombre</th>
             <th>Email</th>
             <th>Role</th>
-            <th>Stars</th>
+            
+            <th>Activo</th>
             <th>Acciones</th>
         </tr>
     </thead>
@@ -24,7 +25,7 @@
                 <td>{{ $user->name }}</td>
                 <td>{{ $user->email }}</td>
                 <td>{{ $user->role }}</td>
-                <td>{{ $user->stars }}</td>
+                <td>{{ $user->activo ? 'Sí' : 'No' }}</td>
                 <td>
                     <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-primary">Editar</a>
                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline-block delete-form">

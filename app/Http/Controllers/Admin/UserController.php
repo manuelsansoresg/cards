@@ -27,6 +27,7 @@ class UserController extends Controller
             'role' => 'required|string',
             'stars' => 'nullable|integer',
             'password' => 'required|string|min:6',
+            'activo' => 'required|boolean',
         ]);
 
         $user = new User();
@@ -34,6 +35,7 @@ class UserController extends Controller
         $user->email = $data['email'];
         $user->role = $data['role'];
         $user->stars = $data['stars'] ?? 0;
+        $user->activo = (bool)$data['activo'];
         $user->password = \Hash::make($data['password']);
         $user->save();
 
@@ -52,8 +54,20 @@ class UserController extends Controller
             'email' => 'required|email',
             'role' => 'required|string',
             'stars' => 'nullable|integer',
+            'activo' => 'required|boolean',
+            'password' => 'nullable|string|min:6',
         ]);
-        $user->update($data);
+        $user->update([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'stars' => $data['stars'] ?? $user->stars,
+            'activo' => (bool)$data['activo'],
+        ]);
+        if (!empty($data['password'])) {
+            $user->password = \Hash::make($data['password']);
+            $user->save();
+        }
         return redirect()->route('admin.users.index')->with('success','Usuario actualizado');
     }
 

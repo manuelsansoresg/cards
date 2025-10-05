@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -48,5 +49,15 @@ class LoginController extends Controller
         }
 
         return redirect()->intended($this->redirectTo);
+    }
+
+    /**
+     * Include 'activo' in credentials to restrict login to active users.
+     */
+    protected function credentials(Request $request)
+    {
+        $credentials = $request->only($this->username(), 'password');
+        $credentials['activo'] = 1;
+        return $credentials;
     }
 }
