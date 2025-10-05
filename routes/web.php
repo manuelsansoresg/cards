@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\StarsSettingController;
 use App\Http\Controllers\Admin\CategoriaController as AdminCategoriaController;
 use App\Http\Controllers\Admin\UploadController as AdminUploadController;
 use App\Http\Controllers\Admin\OrdenController as AdminOrdenController;
+use App\Http\Controllers\CheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,12 +21,32 @@ use App\Http\Controllers\Admin\OrdenController as AdminOrdenController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $categorias = \App\Models\Categoria::where('estado', 1)->orderBy('id')->get();
+    $uploads = \App\Models\Upload::with(['media','reactions','categoria'])
+        ->whereIn('categoria_id', $categorias->pluck('id'))
+        ->orderByDesc('id')
+        ->get();
+
+    $purchasedUploadIds = [];
+    if (auth()->check()) {
+        $purchasedUploadIds = \App\Models\DetalleOrden::whereHas('orden', function($q){
+                $q->where('usuario_id', auth()->id());
+            })->pluck('archivo_id')->toArray();
+    }
+
+    return view('front.index', compact('categorias','uploads','purchasedUploadIds'));
 });
 
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// Checkout
+// Página dedicada para seleccionar método de pago
+Route::get('/pago', [CheckoutController::class, 'page'])->name('checkout.page');
+Route::middleware('auth')->group(function(){
+    Route::post('/checkout', [CheckoutController::class, 'checkout'])->name('checkout');
+});
 
 // Admin routes
 Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')->group(function () {

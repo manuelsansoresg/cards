@@ -1,7 +1,8 @@
 window._ = require('lodash');
 
 try {
-    require('bootstrap');
+    // Aseguramos acceso a los componentes desde window.bootstrap
+    window.bootstrap = require('bootstrap');
 } catch (e) {}
 
 /**

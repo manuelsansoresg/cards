@@ -50,4 +50,12 @@ class Upload extends Model
     {
         return $this->hasMany(MediaUpload::class, 'upload_id');
     }
+
+    /**
+     * Relación: Un upload puede tener múltiples reacciones (emojis).
+     */
+    public function reactions()
+    {
+        return $this->hasMany(Reaction::class, 'upload_id');
+    }
 }

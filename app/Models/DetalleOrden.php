@@ -11,10 +11,7 @@ class DetalleOrden extends Model
 
     protected $table = 'detalles_orden';
 
-    // Desactivamos updated_at y usamos 'creado_en' para created_at
-    public $timestamps = true;
-    const CREATED_AT = 'creado_en';
-    const UPDATED_AT = null; 
+    
 
     protected $fillable = [
         'orden_id',
@@ -22,6 +19,11 @@ class DetalleOrden extends Model
         'precio_unitario',
         'cantidad',
     ];
+
+    // Desactivamos updated_at y usamos 'creado_en' para created_at
+    public $timestamps = true;
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = null; 
 
     /**
      * Relación: Un detalle pertenece a una orden.
