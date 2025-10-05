@@ -3,81 +3,78 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>{{ config('app.name', 'Laravel') }}</title>
-
-    <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}" defer></script>
-
-    <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
-
-    <!-- Styles -->
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <!-- App CSS -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <!-- App JS -->
+    <script src="{{ asset('js/app.js') }}" defer></script>
 </head>
-<body>
-    <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-
-                    </ul>
-
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
-                                </a>
-
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
+<body class="front-bg">
+    <?php $starsSetting = \App\Models\StarsSetting::first(); ?>
+    <header class="front-header d-flex align-items-center justify-content-between px-3">
+        <div class="d-flex align-items-center gap-2">
+            @if(!empty($starsSetting->header_image))
+                <img src="/{{ $starsSetting->header_image }}" alt="Header" class="avatar-placeholder" style="object-fit:cover;">
+            @else
+                <div class="avatar-placeholder"></div>
+            @endif
+            <div>
+                <div class="fw-bold small">{{ $starsSetting->header_title ?? config('app.name', 'Laravel') }}</div>
+                <div class="text-white-50 small">{{ auth()->check() ? auth()->user()->name : 'Invitado' }}</div>
             </div>
-        </nav>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="dropdown">
+                <a href="#" class="text-white position-relative" id="appHeaderMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-shopping-cart"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    @auth
+                        @if((isset(auth()->user()->role) && auth()->user()->role === 'admin') || (method_exists(auth()->user(),'is_admin') && auth()->user()->is_admin))
+                            <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                        @endif
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                               onclick="event.preventDefault(); document.getElementById('logout-form-app').submit();">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+                            </a>
+                            <form id="logout-form-app" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                        </li>
+                    @else
+                        <li><a class="dropdown-item" href="{{ route('login') }}"><i class="fas fa-user me-2"></i>Iniciar sesión</a></li>
+                        @if (Route::has('register'))
+                            <li><a class="dropdown-item" href="{{ route('register') }}"><i class="fas fa-user-plus me-2"></i>Registrarse</a></li>
+                        @endif
+                    @endauth
+                </ul>
+            </div>
+            @auth
+                @if((isset(auth()->user()->role) && auth()->user()->role === 'admin') || (method_exists(auth()->user(),'is_admin') && auth()->user()->is_admin))
+                    <a href="{{ route('admin.dashboard') }}" class="text-white" title="Dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </a>
+                @endif
+            @endauth
+            @auth
+                <a href="{{ route('logout') }}" class="text-white" title="Salir"
+                   onclick="event.preventDefault(); document.getElementById('logout-form-app').submit();">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            @else
+                <a href="{{ route('login') }}" class="text-white" title="Iniciar sesión"><i class="fas fa-user"></i></a>
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="text-white" title="Registrarse"><i class="fas fa-user-plus"></i></a>
+                @endif
+            @endauth
+        </div>
+    </header>
 
-        <main class="py-4">
-            @yield('content')
-        </main>
-    </div>
+    <main class="container py-3">
+        @yield('content')
+    </main>
 </body>
 </html>

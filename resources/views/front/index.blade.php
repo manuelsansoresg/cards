@@ -31,7 +31,7 @@
             @endif
             <div>
                 <div class="fw-bold small">{{ optional(\App\Models\StarsSetting::first())->header_title ?? 'Idols Kpop' }}</div>
-                <div class="text-white-50 small">Invitado</div>
+                <div class="text-white-50 small">{{ auth()->check() ? auth()->user()->name : 'Invitado' }}</div>
             </div>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -56,9 +56,28 @@
                         </li>
                     @else
                         <li><a class="dropdown-item" href="{{ route('login') }}"><i class="fas fa-user me-2"></i>Iniciar sesión</a></li>
+                        @if (Route::has('register'))
+                            <li><a class="dropdown-item" href="{{ route('register') }}"><i class="fas fa-user-plus me-2"></i>Registrarse</a></li>
+                        @endif
                     @endauth
                 </ul>
             </div>
+            @auth
+                @if((isset(auth()->user()->role) && auth()->user()->role === 'admin') || (method_exists(auth()->user(),'is_admin') && auth()->user()->is_admin))
+                    <a href="{{ route('admin.dashboard') }}" class="text-white" title="Dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </a>
+                @endif
+            @endauth
+            @auth
+                <a href="{{ route('logout') }}" class="text-white" title="Salir"
+                   onclick="event.preventDefault(); document.getElementById('logout-form-front').submit();">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            @endauth
+            @guest
+                <a href="{{ route('login') }}" class="text-white" title="Iniciar sesión"><i class="fas fa-user"></i></a>
+            @endguest
         </div>
     </header>
 
@@ -153,7 +172,7 @@
                             </div>
                         </div>
                         <div class="card-body p-3">
-                            <div class="card-title clamp-2">{{ $upload->title }}</div>
+                            <div class="card-title clamp-3">{{ $upload->title }}</div>
                             <div class="d-flex align-items-center justify-content-between mt-2">
                                 <div class="reactions" id="reactions-{{ $upload->id }}">
                                     @foreach((($upload->reactions ?? collect())->groupBy('reaction')->map->count()->sortDesc()) as $emoji => $count)
