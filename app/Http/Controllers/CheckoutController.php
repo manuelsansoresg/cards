@@ -151,8 +151,61 @@ class CheckoutController extends Controller
                 'order_id' => $response->result->id,
             ];
         } catch (\Throwable $e) {
-            \Log::error('PayPal OrdersCreate error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return ['error' => $e->getMessage()];
+            // Fallback a REST con OAuth si el SDK falla por AUTHENTICATION_FAILURE
+            try {
+                $base = (strtolower(trim((string)$cfg->paypal_mode)) === 'live') ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+                $ch = curl_init($base.'/v1/oauth2/token');
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST => true,
+                    CURLOPT_USERPWD => $clientId.':'.$secret,
+                    CURLOPT_POSTFIELDS => http_build_query(['grant_type' => 'client_credentials'])
+                ]);
+                $tokenResp = curl_exec($ch);
+                curl_close($ch);
+                $tokenData = json_decode($tokenResp, true);
+                $accessToken = $tokenData['access_token'] ?? null;
+                if (!$accessToken) { throw new \RuntimeException('No se pudo obtener access_token de PayPal'); }
+
+                $http = new GuzzleClient(['base_uri' => $base]);
+                $rest = $http->post('/v2/checkout/orders', [
+                    'headers' => [
+                        'Authorization' => 'Bearer '.$accessToken,
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                    ],
+                    'json' => [
+                        'intent' => 'CAPTURE',
+                        'purchase_units' => [[
+                            'amount' => [
+                                'currency_code' => 'USD',
+                                'value' => number_format($amountUsd, 2, '.', '')
+                            ],
+                            'description' => 'Compra de archivos digitales',
+                        ]],
+                        'application_context' => [
+                            'return_url' => $returnUrl,
+                            'cancel_url' => $cancelUrl,
+                        ],
+                    ],
+                ]);
+                $data = json_decode((string)$rest->getBody(), true);
+                $approval = null;
+                foreach (($data['links'] ?? []) as $ln) {
+                    if (($ln['rel'] ?? '') === 'approve') { $approval = $ln['href']; break; }
+                }
+                if (!$approval || empty($data['id'])) {
+                    \Log::error('PayPal REST orders response sin approval/id', ['response' => $data]);
+                    return ['error' => 'Orden creada sin approval/id'];
+                }
+                return [
+                    'approval_url' => $approval,
+                    'order_id' => $data['id'],
+                ];
+            } catch (\Throwable $e2) {
+                \Log::error('PayPal REST OrdersCreate error: '.$e2->getMessage(), ['trace' => $e2->getTraceAsString()]);
+                return ['error' => $e->getMessage()];
+            }
         }
     }
 
