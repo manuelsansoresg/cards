@@ -210,6 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('click', function(e){
     const btn = e.target.closest('.add-to-cart');
     if (!btn) return;
+    // Si el usuario no está autenticado, enviarlo a login
+    if (!window.IS_AUTH) { window.location.href = '/login'; return; }
     const id = Number(btn.dataset.id);
     const title = btn.dataset.title;
     const stars = Number(btn.dataset.stars);
