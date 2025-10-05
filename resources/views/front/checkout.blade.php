@@ -107,12 +107,11 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
                 body: JSON.stringify({ items: cart.map(it => ({ id: it.id, cantidad: it.cantidad||1 })), metodo: method })
             }).then(r => r.json()).then(resp => {
-                if (resp.success){
-                    localStorage.removeItem('cart');
-                    alert('Pago confirmado. ¡Gracias!');
-                    window.location.href = '/';
+                if (resp && resp.success && resp.redirect){
+                    // Redirige a PayPal/MercadoPago para aprobar el pago
+                    window.location.href = resp.redirect;
                 } else {
-                    alert(resp.message || 'No se pudo procesar el pago');
+                    alert(resp.message || 'No se pudo iniciar el pago');
                 }
             }).catch(err => {
                 alert('Error de red al procesar el pago');

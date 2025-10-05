@@ -305,7 +305,7 @@
         </script>
     </div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/app.js') . '?v=' . filemtime(public_path('js/app.js')) }}"></script>
     <script>
         // Fallback: si por alguna razón quedó un backdrop o la clase modal-open
         // al cargar la página, limpiamos para permitir el scroll.

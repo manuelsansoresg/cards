@@ -51,6 +51,11 @@ Route::middleware('auth')->group(function(){
     Route::post('/reactions', [ReactionController::class, 'store'])->name('reactions.store');
 });
 
+// Callbacks de pago (NO requieren autenticación; los proveedores deben poder acceder)
+Route::get('/pay/paypal/return', [CheckoutController::class, 'paypalReturn'])->name('paypal.return');
+Route::get('/pay/mercadopago/success', [CheckoutController::class, 'mpSuccess'])->name('mp.success');
+Route::get('/pay/mercadopago/failure', [CheckoutController::class, 'mpFailure'])->name('mp.failure');
+
 // Reactions: listado público por tarjeta
 Route::get('/reactions/{upload}', [ReactionController::class, 'index'])->name('reactions.index');
 

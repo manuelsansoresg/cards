@@ -405,14 +405,12 @@ document.addEventListener('DOMContentLoaded', function () {
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
       body: JSON.stringify({ items: cart.map(it => ({ id: it.id, cantidad: it.cantidad })), metodo: method })
     }).then(r => r.json()).then(resp => {
-      if (resp.success) {
-        cart = [];
-        saveCart();
-        alert('Pago realizado y orden registrada.');
-        window.location.reload();
-      } else {
-        alert(resp.message || 'No se pudo procesar el pago');
+      if (resp && resp.success && resp.redirect) {
+        // Redirige al proveedor seleccionado
+        window.location.href = resp.redirect;
+        return;
       }
+      alert(resp.message || 'No se pudo iniciar el pago');
     }).catch(err => {
       alert('Error de red en checkout');
       console.error(err);
