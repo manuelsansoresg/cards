@@ -156,12 +156,18 @@
                             @if(!$unlocked)
                                 <div class="locked-overlay d-flex flex-column align-items-center justify-content-center text-center">
                                     <div class="lock-text">Bloqueado <i class="fas fa-lock"></i> {{ $upload->stars_cost }} estrellas</div>
-                                    <button class="btn btn-primary btn-sm mt-2 add-to-cart"
-                                        data-id="{{ $upload->id }}"
-                                        data-title="{{ $upload->title }}"
-                                        data-stars="{{ $upload->stars_cost }}">
-                                        <i class="fas fa-cart-plus"></i> Agregar al carrito
-                                    </button>
+                                    @guest
+                                        <a href="{{ route('login') }}" class="btn btn-primary btn-sm mt-2">
+                                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                                        </a>
+                                    @else
+                                        <button class="btn btn-primary btn-sm mt-2 add-to-cart"
+                                            data-id="{{ $upload->id }}"
+                                            data-title="{{ $upload->title }}"
+                                            data-stars="{{ $upload->stars_cost }}">
+                                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                                        </button>
+                                    @endguest
                                 </div>
                             @endif
 
