@@ -20,7 +20,10 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Paypal Mode</label>
-            <input type="text" name="paypal_mode" class="form-control" value="{{ old('paypal_mode', $setting->paypal_mode) }}">
+            <select name="paypal_mode" id="">
+                <option value="live" {{ $setting->paypal_mode==='live' ? 'selected' : '' }}>live</option>
+                <option value="sandbox" {{ $setting->paypal_mode==='sandbox' ? 'selected' : '' }}>sandbox</option>
+            </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Título del header</label>
@@ -45,7 +48,10 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">MercadoPago Mode</label>
-            <input type="text" name="mercadopago_mode" class="form-control" value="{{ old('mercadopago_mode', $setting->mercadopago_mode) }}">
+            <select name="mercadopago_mode" id="">
+                <option value="live" {{ $setting->mercadopago_mode==='live' ? 'selected' : '' }}>live</option>
+                <option value="sandbox" {{ $setting->mercadopago_mode==='sandbox' ? 'selected' : '' }}>sandbox</option>
+            </select>
         </div>
     </div>
     <div class="mt-3">
