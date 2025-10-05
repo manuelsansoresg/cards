@@ -9,6 +9,17 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
     <!-- App CSS (Bootstrap 5 incluido vía SCSS) -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <style>
+        /* Ajuste móvil: cards más estrechas y alineadas a la izquierda.
+           Si es collage (más de 1 media), darle más ancho para que se vea bien. */
+        @media (max-width: 576px){
+            #cards-grid .card-column{ display:flex; justify-content:flex-start; }
+            /* Por defecto (single): más estrecho */
+            #cards-grid .card-column .upload-card{ width:75%; max-width:380px; }
+            /* Collage: si la card contiene .media-container no-single, darle más ancho */
+            #cards-grid .card-column:has(.media-container:not(.single)) .upload-card{ width:92%; max-width:480px; }
+        }
+    </style>
 </head>
 <body class="front-bg">
     <header class="front-header d-flex align-items-center justify-content-between px-3">
